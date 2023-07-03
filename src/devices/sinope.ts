@@ -555,20 +555,6 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['keypadLockout']);
         },
     } as Tz.Converter,
-    tank_level: {
-        // LM4110ZB
-        key: ['tankLevel'],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            if (value >= 0 && value <= 100) {
-                await entity.write('manuSpecificSinope', {tankLevel: value});
-            }
-            return {state: {tank_level: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['tankLevel']);
-        },
-    } as Tz.Converter,
 };
 const definitions: Definition[] = [
     {
@@ -1440,7 +1426,7 @@ const definitions: Definition[] = [
         exposes: [e.battery_low(), 
                   e.temperature(), 
                   e.battery(), 
-                  e.numeric('tank_level', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+                  e.numeric('tank_level', ea.STATE_GET).withUnit('%').withValueMin(0).withValueMax(100)
                       .withDescription('Percent volume remaining in tank')],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
