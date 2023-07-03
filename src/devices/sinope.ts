@@ -202,6 +202,9 @@ const fzLocal = {
                 const lookup = {0: 'unlock', 1: 'lock'};
                 result.keypad_lockout = utils.getFromLookup(msg.data['keypadLockout'], lookup);
             }
+            if (msg.data.hasOwnProperty('tankLevel')) {
+                result.tank_level = msg.data['tankLevel'];
+            }
             return result;
         },
     } as Fz.Converter,
@@ -550,6 +553,20 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['keypadLockout']);
+        },
+    } as Tz.Converter,
+    tank_level: {
+        // LM4110ZB
+        key: ['tankLevel'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {tankLevel: value});
+            }
+            return {state: {tank_level: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['tankLevel']);
         },
     } as Tz.Converter,
 };
@@ -1412,6 +1429,28 @@ const definitions: Definition[] = [
 
             await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+        },
+    {
+        zigbeeModel: ['LM4110ZB'],
+        model: 'LM4110ZB',
+        vendor: 'Sinopé',
+        description: 'Tank level monitor',
+        fromZigbee: [fz.temperature, fz.battery, fzLocal.sinope],
+        toZigbee: [],
+        exposes: [e.battery_low(), 
+                  e.temperature(), 
+                  e.battery(), 
+                  e.numeric('tank_level', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
+                      .withDescription('Percent volume remaining in tank')],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'manuSpecificSinope'];
+            await reporting.tankPercentageRemaining(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+
+            await endpoint.read('manuSpecificSinope', ['tankLevel']);
         },
     },
 ];
