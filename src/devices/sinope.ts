@@ -1445,7 +1445,6 @@ const definitions: Definition[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'msTemperatureMeasurement', 'manuSpecificSinope'];
-            await reporting.tankPercentageRemaining(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
             await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryAlarmState(endpoint);
