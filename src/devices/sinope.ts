@@ -1431,7 +1431,7 @@ const definitions: Definition[] = [
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
         },
     {
-        zigbeeModel: ['LM4110ZB'],
+        zigbeeModel: ['LM4110-ZB'],
         model: 'LM4110ZB',
         vendor: 'Sinopé',
         description: 'Tank level monitor',
